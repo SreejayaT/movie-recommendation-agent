@@ -10,6 +10,11 @@ from groq import Groq
 # Config — reads from Streamlit secrets first, falls back to env vars
 # ------------------------------------------------------------
 def get_secret(name):
+    try:
+        if name in st.secrets:
+            return st.secrets[name]
+    except Exception:
+        pass
     return os.environ.get(name)
 
 GROQ_API_KEY = get_secret("GROQ_API_KEY")
