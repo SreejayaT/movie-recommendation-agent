@@ -3,7 +3,8 @@ import json
 import requests
 import streamlit as st
 from sentence_transformers import SentenceTransformer
-import chromadb
+import numpy as np
+import pickle
 from groq import Groq
 
 # ------------------------------------------------------------
@@ -19,7 +20,8 @@ def get_secret(name):
 
 GROQ_API_KEY = get_secret("GROQ_API_KEY")
 OMDB_API_KEY = get_secret("OMDB_API_KEY")
-CHROMA_DB_PATH = "/content/drive/MyDrive/movie_agent/chroma_db"  # copy this folder over from your Colab DB_DIR
+REVIEW_EMBEDDINGS_PATH = "./review_embeddings.npy"
+REVIEW_DATA_PATH = "./review_data.pkl"
 
 st.set_page_config(page_title="What Should I Watch?", page_icon="🎬", layout="centered")
 
@@ -31,30 +33,34 @@ def load_embedder():
     return SentenceTransformer("all-MiniLM-L6-v2")
 
 @st.cache_resource
-def load_collection():
-    client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-    return client.get_or_create_collection(name="movie_reviews")
+def load_review_data():
+    embeddings = np.load(REVIEW_EMBEDDINGS_PATH)
+    with open(REVIEW_DATA_PATH, "rb") as f:
+        data = pickle.load(f)
+    return embeddings, data["documents"], data["metadatas"]
 
 @st.cache_resource
 def load_groq_client():
     return Groq(api_key=GROQ_API_KEY)
 
 embedder = load_embedder()
-collection = load_collection()
+review_embeddings, review_documents, review_metadatas = load_review_data()
 groq_client = load_groq_client()
 
 # ------------------------------------------------------------
-# Tools — same logic as the Colab version, with results also
-# captured for display (review snippets + poster/metadata)
+# Tools
 # ------------------------------------------------------------
 def search_reviews(query: str, k: int = 6):
-    query_embedding = embedder.encode([query]).tolist()
-    results = collection.query(query_embeddings=query_embedding, n_results=k)
+    query_vec = embedder.encode([query])[0].astype(np.float32)
+    norms = np.linalg.norm(review_embeddings, axis=1)
+    query_norm = np.linalg.norm(query_vec)
+    similarities = (review_embeddings @ query_vec) / (norms * query_norm + 1e-8)
+    top_idx = np.argsort(similarities)[::-1][:k]
 
-    docs = results["documents"][0]
-    metas = results["metadatas"][0]
-
-    snippets = [{"title": m["title"], "review_type": m["review_type"], "text": d} for d, m in zip(docs, metas)]
+    snippets = [
+        {"title": review_metadatas[i]["title"], "review_type": review_metadatas[i]["review_type"], "text": review_documents[i]}
+        for i in top_idx
+    ]
     formatted_text = "\n\n".join(f"[{s['title']} — {s['review_type']}] {s['text']}" for s in snippets)
     return formatted_text if formatted_text else "No matching reviews found.", snippets
 
@@ -124,8 +130,7 @@ Rules:
 """
 
 # ------------------------------------------------------------
-# Agent loop — same pattern as Colab, but also collects snippets
-# and poster cards produced during tool calls for display
+# Agent loop
 # ------------------------------------------------------------
 def run_agent(user_message, history, max_turns=5):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history + [{"role": "user", "content": user_message}]
@@ -185,11 +190,10 @@ st.title("🎬 What Should I Watch?")
 st.caption("Recommendations grounded in real critic reviews, not just star ratings.")
 
 if "messages" not in st.session_state:
-    st.session_state.messages = []  # plain role/content pairs for the LLM
+    st.session_state.messages = []
 if "display_log" not in st.session_state:
-    st.session_state.display_log = []  # richer entries for rendering (snippets, cards)
+    st.session_state.display_log = []
 
-# Render existing conversation
 for entry in st.session_state.display_log:
     with st.chat_message(entry["role"]):
         st.markdown(entry["content"])
@@ -211,8 +215,6 @@ for entry in st.session_state.display_log:
                     st.write(s["text"])
                     st.divider()
 
-# Chat input
-# Text input (avoids st.chat_input's dynamic JS import, which fails over some tunnels)
 with st.form(key="query_form", clear_on_submit=True):
     user_input = st.text_input("What are you in the mood for?", key="user_query")
     submitted = st.form_submit_button("Ask")
