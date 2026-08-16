@@ -1,5 +1,5 @@
 streamlit
 sentence-transformers
-chromadb==1.5.9
 groq
 requests
+numpy
