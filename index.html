@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Movie Review Recommender Agent</title>
+<meta name="description" content="An agent that recommends movies and series based on what real reviewers wrote, not just star ratings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;600;800&family=Source+Serif+4:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#000; --white:#fff; --red:#E10600; --grey:#B8B8B8; --line:#2A2A2A; --soft:#EDEDED;
+  --display:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,sans-serif; --serif:"Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--black);font:400 1.05rem/1.6 var(--sans)}
+a{color:var(--red)}
+:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+.wrap{max-width:68rem;margin:0 auto;padding:0 1.5rem}
+
+/* hero */
+header.hero{background:var(--black);color:var(--white);padding:4.5rem 0 4rem;border-bottom:8px solid var(--red)}
+.hero .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3rem;align-items:start}
+h1{font:400 clamp(2.6rem,6vw,4.6rem)/1.05 var(--display);letter-spacing:-.015em;margin:0 0 1.25rem}
+.lede{font-size:1.15rem;color:var(--grey);max-width:32rem;margin:0 0 1.75rem}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap}
+.btn{display:inline-block;padding:.7rem 1.2rem;border-radius:0;font-weight:800;text-decoration:none;border:2px solid var(--white);color:var(--white)}
+.btn.primary{background:var(--red);border-color:var(--red)}
+.btn:hover{background:var(--white);color:var(--black);border-color:var(--white)}
+
+/* demo */
+.demo{background:var(--white);color:var(--black);border-radius:0;padding:1.25rem;border-top:6px solid var(--red)}
+.demo h2{font-size:.95rem;margin:0 0 .6rem;font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.1rem}
+.chip{font:inherit;font-size:.92rem;padding:.4rem .8rem;border:2px solid var(--black);border-radius:0;background:var(--white);color:var(--black);cursor:pointer}
+.chip:hover{background:var(--soft)}
+.chip[aria-pressed="true"]{background:var(--black);color:var(--white)}
+.out{border-top:2px solid var(--black);padding-top:1rem;animation:swap .35s ease}
+@keyframes swap{from{opacity:.2}to{opacity:1}}
+.out .pick{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
+.out .title{font:400 1.7rem/1.15 var(--display);letter-spacing:-.01em}
+.out .meta{color:#555;font-size:.9rem}
+.out p{margin:.6rem 0}
+blockquote{margin:.8rem 0;padding:.1rem 0 .1rem 1rem;border-left:5px solid var(--black);font:italic 400 1.08rem/1.55 var(--serif)}
+mark{background:var(--red);color:var(--white);padding:.05em .3em}
+.note{font-size:.82rem;color:#555;margin:.9rem 0 0}
+
+/* sections */
+section{padding:4rem 0}
+h2.sec{font:400 clamp(2rem,4vw,3rem)/1.05 var(--display);letter-spacing:-.01em;margin:0 0 1.5rem}
+.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+.steps li{counter-increment:s;border-top:4px solid var(--black);padding-top:.8rem}
+.steps li::before{content:counter(s);font:400 2rem/1 var(--display);color:var(--red)}
+.steps strong{display:block;margin:.3rem 0}
+.steps span{color:#444;font-size:.97rem}
+#why{background:var(--black);color:var(--white)}
+#why p{color:var(--grey);max-width:34rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
+.stack{display:flex;flex-wrap:wrap;gap:.5rem;padding:0;margin:0;list-style:none}
+.stack li{border:2px solid var(--white);padding:.3rem .7rem;font-weight:600;font-size:.95rem}
+.stack li:nth-child(1){background:var(--red);border-color:var(--red)}
+pre{background:var(--black);color:var(--white);padding:1.1rem 1.25rem;border-left:8px solid var(--red);overflow-x:auto;font:400 .9rem/1.6 ui-monospace,Menlo,Consolas,monospace;margin:0}
+#quick-start .note{color:#444}
+footer{background:var(--black);color:var(--grey);padding:2.5rem 0 3rem;font-size:.95rem}
+footer a{color:var(--white)}
+
+@media(max-width:52rem){
+  .hero .grid,.two{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  header.hero{padding-top:3rem}
+}
+@media(max-width:32rem){.steps{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.out{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap grid">
+    <div>
+      <h1>Pick what to watch from what people actually wrote.</h1>
+      <p class="lede">A movie and series recommender that reads real reviews before it answers. Tell it what you feel like watching, and it suggests a title backed by review text, not just a star rating.</p>
+      <div class="btns">
+        <a class="btn primary" href="https://YOUR-APP.streamlit.app">Try the app</a>
+        <a class="btn ghost" href="https://github.com/YOUR-USERNAME/YOUR-REPO">View on GitHub</a>
+        <a class="btn ghost" href="#quick-start">Run it yourself</a>
+      </div>
+    </div>
+
+    <div class="demo" aria-live="polite">
+      <h2>Try a request</h2>
+      <div class="chips" id="chips">
+        <button class="chip" aria-pressed="true" data-i="0">Something slow and thoughtful</button>
+        <button class="chip" aria-pressed="false" data-i="1">A series to binge this weekend</button>
+        <button class="chip" aria-pressed="false" data-i="2">Light comedy, no violence</button>
+      </div>
+      <div class="out" id="out"></div>
+      <p class="note">Illustrative output. Replace with a real response from your agent.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="how">
+  <div class="wrap">
+    <h2 class="sec">How it works</h2>
+    <ol class="steps">
+      <li><strong>You describe a mood</strong><span>Type what you feel like watching. If the request is vague, the agent asks one clarifying question first.</span></li>
+      <li><strong>It searches critic reviews</strong><span>Your request is embedded with all-MiniLM-L6-v2 and matched by cosine similarity against stored review embeddings. The top 6 reviews come back.</span></li>
+      <li><strong>It checks the details</strong><span>A tool call to OMDb fetches the year, runtime, genre, poster, and IMDb rating of the title it is considering.</span></li>
+      <li><strong>It answers with evidence</strong><span>Llama 3.3 70B explains the pick using language from the reviews, says so when critics disagree, and lets you open the reviews it used.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap two">
+    <div>
+      <h2 class="sec">Why reviews, not ratings</h2>
+      <p>A 7.8 doesn’t say whether a film is slow, funny, or heavy. Reviews do. Grounding each recommendation in review text means the agent can explain itself, and you can judge whether the reasoning fits your taste. Every answer comes with an expandable list of the reviews it used, so you can check the reasoning yourself.</p>
+    </div>
+    <div>
+      <h2 class="sec">Built with</h2>
+      <ul class="stack">
+        <li>Python</li>
+        <li>Streamlit</li>
+        <li>Groq · Llama 3.3 70B</li>
+        <li>sentence-transformers</li>
+        <li>NumPy similarity search</li>
+        <li>OMDb API</li>
+        <li>RAG</li>
+        <li>Tool-calling agent</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="quick-start">
+  <div class="wrap">
+    <h2 class="sec">Quick start</h2>
+    <pre><code>git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
+cd YOUR-REPO
+pip install streamlit sentence-transformers numpy requests groq
+
+# Add your keys to .streamlit/secrets.toml
+# (or set them as environment variables):
+#   GROQ_API_KEY = "your-key"
+#   OMDB_API_KEY = "your-key"
+
+streamlit run app.py   # use your script's filename</code></pre>
+    <p class="note">The app expects <code>review_embeddings.npy</code> and <code>review_data.pkl</code> in the project folder.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    Built by <a href="https://www.linkedin.com/in/YOUR-PROFILE">Sreejaya</a>. Source on <a href="https://github.com/YOUR-USERNAME/YOUR-REPO">GitHub</a>.
+  </div>
+</footer>
+
+<script>
+const examples=[
+  {q:"Something slow and thoughtful",title:"Past Lives",meta:"Film · IMDb 7.8",why:"Reviewers keep describing it as quiet and patient, and say it stays with them afterwards.",quote:"Almost nothing happens, and <mark>it is quietly devastating</mark> in the best way."},
+  {q:"A series to binge this weekend",title:"Severance",meta:"Series · IMDb 8.7",why:"Many reviews mention losing track of time and needing the next episode straight away.",quote:"I told myself one episode. <mark>Three hours later</mark> I was still watching."},
+  {q:"Light comedy, no violence",title:"Paddington 2",meta:"Film · IMDb 7.8",why:"Reviews describe it as warm and gentle, and suitable for almost anyone.",quote:"<mark>Genuinely kind</mark> and funny, with nothing to be nervous about."}
+];
+const out=document.getElementById("out"),chips=[...document.querySelectorAll(".chip")];
+function show(i){
+  const e=examples[i];
+  out.style.animation="none";out.offsetHeight;out.style.animation="";
+  out.innerHTML=`<div class="pick"><span class="title">${e.title}</span><span class="meta">${e.meta}</span></div>
+  <p>${e.why}</p><blockquote>${e.quote}</blockquote>`;
+  chips.forEach((c,n)=>c.setAttribute("aria-pressed",n===i));
+}
+chips.forEach(c=>c.addEventListener("click",()=>show(+c.dataset.i)));
+show(0);
+</script>
+</body>
+</html>
