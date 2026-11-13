@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reelwise: movie picks grounded in what reviewers actually wrote</title>
+<meta name="theme-color" content="#0F0708">
+<meta name="description" content="An agent that recommends movies and series by reading real reviews, not just star ratings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --paper:#0F0708; --card:#1B0D0F; --ink:#F6EBDD; --muted:#B79C9A;
+  --teal:#FF4B55; --teal-soft:#3A1218; --amber:#E9B949; --line:#43211F;
+  --velvet:#8E0F22; --gold:#E9B949;
+  --head:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Newsreader",Georgia,serif;
+}
+*{box-sizing:border-box}
+.curtain{height:18px;background:repeating-linear-gradient(90deg,#5E0816 0 22px,#9B1128 22px 44px,#6F0A1B 44px 66px);border-bottom:3px solid var(--gold)}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:19px;line-height:1.6}
+a{color:var(--teal)}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px;border-radius:4px}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.logo{font-family:var(--head);font-weight:800;font-size:20px;letter-spacing:-.01em;color:var(--gold)}
+nav a{font-family:var(--head);font-weight:500;font-size:15px;margin-left:20px;text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--ink)}
+h1,h2,h3{font-family:var(--head);line-height:1.08;letter-spacing:-.02em;margin:0}
+h1{font-size:clamp(38px,7vw,72px);font-weight:800;max-width:15ch}
+h2{font-size:clamp(28px,4vw,40px);font-weight:700;margin-bottom:14px}
+h3{font-size:20px;font-weight:700}
+.hero{position:relative;isolation:isolate}
+.hero::before{content:"";position:absolute;top:-30px;left:-6%;width:62%;height:480px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(246,224,170,.26),rgba(246,224,170,0) 92%);
+  clip-path:polygon(38% 0,62% 0,100% 100%,0 100%);filter:blur(16px)}
+@media (prefers-reduced-motion:no-preference){.hero::before{animation:spot 1.4s ease-out both}@keyframes spot{from{opacity:0}to{opacity:1}}}
+@media (max-width:720px){.hero::before{width:100%;left:-12%;height:380px}}
+.lede{max-width:56ch;color:var(--muted);margin:22px 0 34px}
+section{padding:64px 0}
+mark{background:linear-gradient(transparent 8%,var(--amber) 8%);color:#1A0A0A;padding:0 2px;border-radius:2px}
+
+/* demo */
+.demo{background:var(--card);border:2px solid var(--gold);border-radius:18px;padding:26px;box-shadow:0 0 0 6px var(--paper),0 0 0 8px var(--velvet)}
+.ask{display:flex;gap:10px;flex-wrap:wrap}
+.ask input{flex:1 1 260px;font:inherit;font-size:18px;padding:13px 16px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink)}
+.btn{font-family:var(--head);font-weight:700;font-size:16px;padding:13px 22px;border:0;border-radius:10px;background:var(--ink);color:var(--paper);cursor:pointer}
+.btn:hover{background:var(--velvet);color:#fff}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+.chip{font:inherit;font-size:16px;padding:6px 14px;border-radius:99px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.chip:hover,.chip[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft)}
+#out{margin-top:24px;border-top:1px dashed var(--line);padding-top:22px;min-height:120px}
+.hint{color:var(--muted);font-style:italic}
+.trace{font-family:ui-monospace,Menlo,monospace;font-size:13.5px;background:var(--paper);border-radius:10px;padding:12px 14px;margin:0 0 20px;color:var(--muted);line-height:1.7}
+.trace b{color:var(--teal);font-weight:600}
+.pick{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pick h3{font-size:30px}
+.rating{font-family:var(--head);font-weight:700;font-size:15px;background:var(--teal-soft);color:var(--teal);padding:4px 12px;border-radius:99px}
+.why{margin:10px 0 18px}
+blockquote{margin:0 0 14px;padding:2px 0 2px 16px;border-left:4px solid var(--line)}
+blockquote cite{display:block;font-size:14px;color:var(--muted);font-style:normal;font-family:var(--head)}
+.note{font-size:15px;color:var(--muted);margin-top:16px}
+
+/* compare */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.col{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.col.win{border:2px solid var(--teal);background:var(--teal-soft)}
+.col p{margin:10px 0 0}
+.big{font-family:var(--head);font-weight:800;font-size:22px}
+
+/* pipeline: a real sequence */
+ol.flow{list-style:none;margin:30px 0 0;padding:0;counter-reset:s;border-left:3px solid var(--line)}
+ol.flow li{counter-increment:s;position:relative;padding:0 0 28px 34px}
+ol.flow li::before{content:counter(s);position:absolute;left:-17px;top:0;width:31px;height:31px;border-radius:50%;background:var(--velvet);color:#fff;font-family:var(--head);font-weight:700;font-size:15px;display:grid;place-items:center}
+ol.flow li:last-child{padding-bottom:0}
+ol.flow p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+
+.stack{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.stack span{font-family:var(--head);font-weight:500;font-size:15px;border:1.5px solid var(--line);border-radius:8px;padding:6px 14px;background:var(--card)}
+footer{padding:40px 0 60px;color:var(--muted);font-size:16px;border-top:1px solid var(--line)}
+@media (max-width:720px){.two{grid-template-columns:1fr}body{font-size:18px}nav a:not(:last-child){display:none}}
+@media (prefers-reduced-motion:no-preference){
+  .fade{animation:in .35s ease-out}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+<div class="curtain" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">Reelwise</div>
+    <nav><a href="#try">Try it</a><a href="#how">How it works</a><a href="#stack">Stack</a><a href="https://github.com/YOUR-USERNAME/YOUR-REPO">GitHub</a></nav>
+  </header>
+
+  <section class="hero" style="padding-top:36px">
+    <h1>Picks backed by what reviewers actually said.</h1>
+    <p class="lede">Star ratings tell you a film is good. They don't tell you it's slow, sad, funny or strange. Reelwise reads real reviews, finds the ones that match what you're in the mood for, and recommends a movie or series with the evidence attached.</p>
+  </section>
+
+  <section id="try" style="padding-top:0">
+    <h2>Describe a mood, get a pick</h2>
+    <div class="demo">
+      <form class="ask" id="f" autocomplete="off">
+        <label for="q" style="position:absolute;left:-9999px">What do you want to watch?</label>
+        <input id="q" placeholder="e.g. something warm after a rough week">
+        <button class="btn" type="submit">Recommend</button>
+      </form>
+      <div class="chips" id="chips"></div>
+      <div id="out" aria-live="polite"><p class="hint">Pick an example above or type a mood. Highlighted phrases are the parts of each review that led to the pick.</p></div>
+    </div>
+    <p class="note">This page runs a scripted demo with sample review text written for illustration. The real agent calls the Groq API and OMDb from a backend, so no API keys ever sit in this page.</p>
+  </section>
+
+  <section>
+    <h2>Why not just use ratings?</h2>
+    <div class="two">
+      <div class="col">
+        <div class="big">Ratings only</div>
+        <p>"7.9 out of 10." You learn that people liked it, but not whether it suits a quiet Sunday or a loud Friday.</p>
+      </div>
+      <div class="col win">
+        <div class="big">Ratings plus review text</div>
+        <p>The agent matches your words to the language reviewers use (<mark>"slow burn"</mark>, <mark>"comforting"</mark>, <mark>"gorgeous to look at"</mark>) and shows you the lines behind its choice.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" style="padding-top:0">
+    <h2>How a recommendation happens</h2>
+    <ol class="flow">
+      <li><h3>Collect reviews</h3><p>Real movie and series reviews are loaded into a database, each tagged with its title.</p></li>
+      <li><h3>Index the review text</h3><p>Reviews are split into passages and turned into embeddings so they can be searched by meaning, not just keywords.</p></li>
+      <li><h3>Understand the request</h3><p>The agent reads what you typed and decides which tools it needs.</p></li>
+      <li><h3>Retrieve and look up</h3><p>It pulls the most relevant review passages, then asks OMDb for ratings and basic details on the candidates.</p></li>
+      <li><h3>Answer from the evidence</h3><p>A Groq-hosted LLM writes the recommendation using only the retrieved reviews, and quotes the lines that support it.</p></li>
+    </ol>
+  </section>
+
+  <section id="stack" style="padding-top:0">
+    <h2>Built with</h2>
+    <div class="stack">
+      <span>Groq API</span><span>OMDb API</span><span>Retrieval (RAG)</span><span>Tool-calling agent</span><span>Review database</span><span>Python</span>
+    </div>
+    <p class="lede" style="margin-top:22px">Edit this list to match your final implementation, such as the embedding model, vector store and framework you pick.</p>
+  </section>
+
+  <footer>
+    Built by <strong>Sreejaya</strong>. Source code on <a href="https://github.com/YOUR-USERNAME/YOUR-REPO">GitHub</a>.
+  </footer>
+</div>
+
+<script>
+const DATA=[
+ {k:["sci","think","slow","mind","space","deep"],label:"Slow, thoughtful sci-fi",
+  title:"Arrival",rating:"IMDb 7.9",
+  trace:["search_reviews(<b>\"slow thoughtful sci-fi that stays with me\"</b>) → 6 passages","get_omdb(<b>\"Arrival\"</b>) → rating, year, genre"],
+  why:"Reviewers repeatedly describe it as patient and emotional rather than action-driven, which matches the mood you asked for.",
+  quotes:[["A <mark>patient, quiet</mark> film that rewards you for paying attention.","Sample review A"],["I kept thinking about it <mark>for days afterwards</mark>.","Sample review B"],["Science fiction with <mark>more heart than spectacle</mark>.","Sample review C"]]},
+ {k:["warm","rough","sad","cheer","comfort","happy","week","tired"],label:"Warm after a rough week",
+  title:"Paddington 2",rating:"IMDb 7.8",
+  trace:["search_reviews(<b>\"warm comforting after a rough week\"</b>) → 6 passages","get_omdb(<b>\"Paddington 2\"</b>) → rating, year, genre"],
+  why:"Review after review uses words like kind, gentle and uplifting, and none of them warn about anything heavy.",
+  quotes:[["Genuinely <mark>kind-hearted</mark> without being syrupy.","Sample review A"],["I left the cinema <mark>smiling for an hour</mark>.","Sample review B"],["<mark>Pure comfort</mark> for any age.","Sample review C"]]},
+ {k:["anim","rain","art","visual","gorgeous","beautiful","ghibli"],label:"Gorgeous animation for a rainy night",
+  title:"Spirited Away",rating:"IMDb 8.6",
+  trace:["search_reviews(<b>\"gorgeous animated film for a rainy night\"</b>) → 6 passages","get_omdb(<b>\"Spirited Away\"</b>) → rating, year, genre"],
+  why:"Reviewers focus on how it looks and feels, with the hand-drawn world described as immersive and dreamlike.",
+  quotes:[["Every frame is <mark>gorgeous to look at</mark>.","Sample review A"],["A <mark>dreamlike world</mark> you want to stay in.","Sample review B"],["Strange, tender and <mark>perfect for a quiet evening</mark>.","Sample review C"]]}
+];
+const out=document.getElementById("out"),chips=document.getElementById("chips"),q=document.getElementById("q");
+DATA.forEach((d,i)=>{
+  const b=document.createElement("button");
+  b.type="button";b.className="chip";b.textContent=d.label;b.setAttribute("aria-pressed","false");
+  b.onclick=()=>{q.value=d.label;show(i)};
+  chips.appendChild(b);
+});
+function show(i){
+  [...chips.children].forEach((c,j)=>c.setAttribute("aria-pressed",String(i===j)));
+  const d=DATA[i];
+  out.innerHTML=`<div class="fade">
+    <div class="trace">${d.trace.map(t=>"› "+t).join("<br>")}</div>
+    <div class="pick"><h3>${d.title}</h3><span class="rating">${d.rating}</span></div>
+    <p class="why">${d.why}</p>
+    ${d.quotes.map(x=>`<blockquote>${x[0]}<cite>${x[1]}</cite></blockquote>`).join("")}
+  </div>`;
+}
+document.getElementById("f").addEventListener("submit",e=>{
+  e.preventDefault();
+  const t=q.value.toLowerCase();
+  const i=DATA.findIndex(d=>d.k.some(w=>t.includes(w)));
+  if(i<0){
+    [...chips.children].forEach(c=>c.setAttribute("aria-pressed","false"));
+    out.innerHTML='<p class="hint">This demo only knows three moods. Try one of the examples above, or words like "sci-fi", "warm" or "animation".</p>';
+  } else show(i);
+});
+</script>
+</body>
+</html>
