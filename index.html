@@ -93,13 +93,14 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:16px;border-top:1px soli
 <div class="wrap">
   <header class="top">
     <div class="logo">Reelwise</div>
-    <nav><a href="#try">Try it</a><a href="#how">How it works</a><a href="#stack">Stack</a><a href="https://movie-recommendation-agent-gr3mvyxqhphj9jmjfr6jqh.streamlit.app/">GitHub</a></nav>
+    <nav><a href="#try">Try it</a><a href="#how">How it works</a><a href="#stack">Stack</a><a href="https://github.com/SreejayaT/movie-recommendation-agent">GitHub</a><a href="https://movie-recommendation-agent-gr3mvyxqhphj9jmjfr6jqh.streamlit.app/" target="_blank" rel="noopener">Live app</a></nav>
     
   </header>
 
   <section class="hero" style="padding-top:36px">
     <h1>Picks backed by what reviewers actually said.</h1>
     <p class="lede">Star ratings tell you a film is good. They don't tell you it's slow, sad, funny or strange. Reelwise reads real reviews, finds the ones that match what you're in the mood for, and recommends a movie or series with the evidence attached.</p>
+    <p><a class="btn" href="https://movie-recommendation-agent-gr3mvyxqhphj9jmjfr6jqh.streamlit.app/" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Open the live app ↗</a></p>
   </section>
 
   <section id="try" style="padding-top:0">
@@ -113,7 +114,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:16px;border-top:1px soli
       <div class="chips" id="chips"></div>
       <div id="out" aria-live="polite"><p class="hint">Pick an example above or type a mood. Highlighted phrases are the parts of each review that led to the pick.</p></div>
     </div>
-    <p class="note">This page runs a scripted demo with sample review text written for illustration. The real agent calls the Groq API and OMDb from a backend, so no API keys ever sit in this page.</p>
+    <p class="note">This page runs a scripted demo with sample review text written for illustration. The real agent calls the Groq API and OMDb from a backend, so no API keys ever sit in this page. For the real agent, <a href="https://movie-recommendation-agent-gr3mvyxqhphj9jmjfr6jqh.streamlit.app/" target="_blank" rel="noopener">open the live app</a> (it may take a minute to wake up if it has been idle).</p>
   </section>
 
   <section>
@@ -144,9 +145,10 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:16px;border-top:1px soli
   <section id="stack" style="padding-top:0">
     <h2>Built with</h2>
     <div class="stack">
-      <span>Groq API</span><span>OMDb API</span><span>Retrieval (RAG)</span><span>Tool-calling agent</span><span>Review database</span><span>Python</span>
+      #<span>Groq API</span><span>OMDb API</span><span>Retrieval (RAG)</span><span>Tool-calling agent</span><span>Review database</span><span>Python</span>
+      <span>Groq API (gpt-oss-20b)</span><span>OMDb API</span><span>sentence-transformers (all-MiniLM-L6-v2)</span><span>Cosine-similarity retrieval (RAG)</span><span>Tool-calling agent</span><span>Streamlit</span><span>Python</span>
     </div>
-    <p class="lede" style="margin-top:22px">Edit this list to match your final implementation, such as the embedding model, vector store and framework you pick.</p>
+    
   </section>
 
   <footer>
