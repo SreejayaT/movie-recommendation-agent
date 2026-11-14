@@ -46,7 +46,7 @@ def load_groq_client():
 embedder = load_embedder()
 review_embeddings, review_documents, review_metadatas = load_review_data()
 groq_client = load_groq_client()
-st.write([m.id for m in groq_client.models.list().data])
+#st.write([m.id for m in groq_client.models.list().data])
 
 # ------------------------------------------------------------
 # Tools
@@ -142,7 +142,7 @@ def run_agent(user_message, history, max_turns=5):
     for _ in range(max_turns):
         try:
             response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-20b",
                 messages=messages,
                 tools=TOOLS,
                 tool_choice="auto",
