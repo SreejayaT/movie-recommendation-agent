@@ -164,17 +164,25 @@ def render_poster_wall():
 # ------------------------------------------------------------
 # Tools
 # ------------------------------------------------------------
-def search_reviews(query: str, k: int = 6):
+def search_reviews(query: str, k: int = 8):
     query_vec = embedder.encode([query])[0].astype(np.float32)
     norms = np.linalg.norm(review_embeddings, axis=1)
     query_norm = np.linalg.norm(query_vec)
     similarities = (review_embeddings @ query_vec) / (norms * query_norm + 1e-8)
-    top_idx = np.argsort(similarities)[::-1][:k]
+    top_idx = np.argsort(similarities)[::-1][:80]
 
-    snippets = [
-        {"title": review_metadatas[i]["title"], "review_type": review_metadatas[i]["review_type"], "text": review_documents[i]}
-        for i in top_idx
-    ]
+    snippets, per_title, seen = [], {}, set()
+    for i in top_idx:
+        title = review_metadatas[i]["title"]
+        text = review_documents[i]
+        if text in seen or per_title.get(title, 0) >= 2:   # max 2 reviews per title
+            continue
+        seen.add(text)
+        per_title[title] = per_title.get(title, 0) + 1
+        snippets.append({"title": title, "review_type": review_metadatas[i]["review_type"], "text": text})
+        if len(snippets) >= k:
+            break
+
     formatted_text = "\n\n".join(f"[{s['title']} — {s['review_type']}] {s['text']}" for s in snippets)
     return formatted_text if formatted_text else "No matching reviews found.", snippets
 
@@ -241,6 +249,7 @@ Rules:
 - When you recommend something, explain WHY using specific language from the
   reviews you retrieved — not a generic summary.
 - If critics were split on something, say so honestly.
+- Call search_reviews at most twice. After that, stop searching and write your final recommendation.
 """
 
 # ------------------------------------------------------------
@@ -252,15 +261,18 @@ def run_agent(user_message, history, max_turns=5):
     collected_snippets = []
     collected_cards = []
 
-    for _ in range(max_turns):
+    for turn in range(max_turns):
+        is_last = (turn == max_turns - 1)
+        if is_last:
+            messages.append({"role": "user", "content": "Now give your final recommendation using what you've gathered. Do not call any more tools."})
+        tool_args = {} if is_last else {"tools": TOOLS, "tool_choice": "auto"}
         try:
             response = groq_client.chat.completions.create(
                 model="openai/gpt-oss-20b",
                 messages=messages,
-                tools=TOOLS,
-                tool_choice="auto",
-                max_tokens=800,
+                max_tokens=1500,
                 temperature=0,
+                **tool_args,
             )
         except Exception as e:
             if "tool_use_failed" in str(e):
@@ -285,11 +297,13 @@ def run_agent(user_message, history, max_turns=5):
 
             if fn_name == "search_reviews":
                 result_text, snippets = search_reviews(**fn_args)
-                collected_snippets.extend(snippets)
+                existing = {s["text"] for s in collected_snippets}
+                collected_snippets.extend(s for s in snippets if s["text"] not in existing)
             elif fn_name == "get_movie_details":
                 result_text, card = get_movie_details(**fn_args)
-                if card:
-                    collected_cards.append(card)
+                if card and card["title"] not in {c["title"] for c in collected_cards}:
+                    collected_cards.append(card)                
+                
             else:
                 result_text = "Unknown tool."
 
