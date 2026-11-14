@@ -188,7 +188,7 @@ def search_reviews(query: str, k: int = 8):
 
 
 def get_movie_details(title: str):
-    resp = requests.get("http://www.omdbapi.com/", params={"apikey": OMDB_API_KEY, "t": title})
+    resp = requests.get("https://www.omdbapi.com/", params={"apikey": OMDB_API_KEY, "t": title})
     data = resp.json()
     if data.get("Response") == "False":
         return f"No OMDb data found for '{title}'.", None
