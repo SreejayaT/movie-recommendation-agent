@@ -7,7 +7,8 @@ An agentic RAG app that recommends what to watch based on **what critics actuall
 **Live app:** https://movie-recommendation-agent-gr3mvyxqhphj9jmjfr6jqh.streamlit.app/
 (Free-tier apps sleep when idle. If you see a "wake up" button, click it and wait about a minute.)
 
-<!-- Add a screenshot or GIF here, e.g. ![Demo](docs/demo.gif) -->
+![Home screen](docs/demo1.png.png)
+![Recommendation result](demo2.png.png)
 
 ## Why this exists
 
