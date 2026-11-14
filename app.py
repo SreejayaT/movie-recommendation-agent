@@ -46,6 +46,7 @@ def load_groq_client():
 embedder = load_embedder()
 review_embeddings, review_documents, review_metadatas = load_review_data()
 groq_client = load_groq_client()
+st.write([m.id for m in groq_client.models.list().data])
 
 # ------------------------------------------------------------
 # Tools
