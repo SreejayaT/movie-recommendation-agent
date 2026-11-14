@@ -116,6 +116,51 @@ review_embeddings, review_documents, review_metadatas = load_review_data()
 groq_client = load_groq_client()
 #st.write([m.id for m in groq_client.models.list().data])
 
+POSTER_WALL_TITLES = (
+    "The Godfather", "Inception", "Parasite", "Interstellar",
+    "Pulp Fiction", "The Dark Knight", "Spirited Away", "Whiplash",
+    "Mad Max: Fury Road", "La La Land", "Oldboy", "Joker",
+)
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def fetch_poster_wall(titles):
+    urls = []
+    for t in titles:
+        try:
+            r = requests.get(
+                "http://www.omdbapi.com/",
+                params={"apikey": OMDB_API_KEY, "t": t},
+                timeout=5,
+            ).json()
+            poster = r.get("Poster")
+            if poster and poster != "N/A":
+                urls.append(poster)
+        except Exception:
+            continue
+    return urls
+
+def render_poster_wall():
+    urls = fetch_poster_wall(POSTER_WALL_TITLES)
+    if not urls:
+        return
+    imgs = "".join(f'<img src="{u}" alt="">' for u in urls)
+    st.markdown(f"""
+<style>
+.poster-wall {{
+    display: flex; gap: 6px; height: 170px; overflow: hidden;
+    margin-bottom: 0.5rem;
+    -webkit-mask-image: linear-gradient(to bottom, black 35%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 35%, transparent 100%);
+}}
+.poster-wall img {{
+    flex: 1 1 0; min-width: 0; height: 100%;
+    object-fit: cover; border-radius: 6px;
+    opacity: 0.8; transition: opacity 0.3s, transform 0.3s;
+}}
+.poster-wall img:hover {{ opacity: 1; transform: translateY(-4px); }}
+</style>
+<div class="poster-wall">{imgs}</div>
+""", unsafe_allow_html=True)
 # ------------------------------------------------------------
 # Tools
 # ------------------------------------------------------------
@@ -255,6 +300,7 @@ def run_agent(user_message, history, max_turns=5):
 # ------------------------------------------------------------
 # UI
 # ------------------------------------------------------------
+render_poster_wall()
 st.title("🎬 What Should I Watch?")
 st.caption("Recommendations grounded in real critic reviews, not just star ratings.")
 
