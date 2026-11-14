@@ -7,6 +7,25 @@ import numpy as np
 import pickle
 from groq import Groq
 
+def show_cards(cards):
+    if not cards:
+        return
+    cards = cards[:3]
+    cols = st.columns(len(cards))
+    for col, card in zip(cols, cards):
+        with col:
+            poster = card.get("poster") or card.get("Poster")
+            if poster and poster != "N/A":
+                st.image(poster, use_container_width=True)
+            title = card.get("title") or card.get("Title") or "Unknown"
+            year = card.get("year") or card.get("Year") or ""
+            st.markdown(f"**{title}** {f'({year})' if year else ''}")
+            rating = card.get("rating") or card.get("imdbRating")
+            if rating and rating != "N/A":
+                st.caption(f"⭐ {rating}")
+            genre = card.get("genre") or card.get("Genre")
+            if genre:
+                st.caption(genre)
 # ------------------------------------------------------------
 # Config — reads from Streamlit secrets first, falls back to env vars
 # ------------------------------------------------------------
