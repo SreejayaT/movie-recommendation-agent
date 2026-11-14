@@ -46,7 +46,53 @@ REVIEW_EMBEDDINGS_PATH = "./review_embeddings.npy"
 REVIEW_DATA_PATH = "./review_data.pkl"
 
 st.set_page_config(page_title="What Should I Watch?", page_icon="🎬", layout="centered")
+st.markdown("""
+<style>
+/* Cinema backdrop: red spotlight from the top over a dark gradient */
+.stApp {
+    background:
+        radial-gradient(ellipse at 50% -10%, rgba(229,9,20,0.28), transparent 55%),
+        linear-gradient(180deg, #0b0b10 0%, #14060a 100%);
+}
 
+/* Faint cinema emoji pattern */
+.stApp::after {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><text x='14' y='50' font-size='34'>🎬</text><text x='96' y='112' font-size='34'>🍿</text><text x='20' y='140' font-size='30'>🎟️</text></svg>");
+}
+
+/* Filmstrips on the left and right edges */
+.stApp::before {
+    content: "";
+    position: fixed; top: 0; bottom: 0; left: 0; right: 0;
+    pointer-events: none; z-index: 1;
+    background-image:
+        linear-gradient(#111, #111),
+        repeating-linear-gradient(to bottom, #d8cfb4 0 20px, transparent 20px 38px),
+        linear-gradient(#111, #111),
+        repeating-linear-gradient(to bottom, #d8cfb4 0 20px, transparent 20px 38px);
+    background-size: 46px 100%, 14px 100%, 46px 100%, 14px 100%;
+    background-position: left top, 16px 0, right top, calc(100% - 16px) 0;
+    background-repeat: no-repeat;
+}
+
+/* Readable translucent panel behind your content */
+.block-container {
+    background: rgba(14, 17, 23, 0.82);
+    border-radius: 16px;
+    padding: 2rem 2rem 3rem 2rem;
+    margin-top: 1rem;
+}
+
+/* Hide filmstrips on phones so they don't cover content */
+@media (max-width: 800px) {
+    .stApp::before { display: none; }
+}
+</style>
+""", unsafe_allow_html=True)
 # ------------------------------------------------------------
 # Cached resources — loaded once, not on every rerun
 # ------------------------------------------------------------
