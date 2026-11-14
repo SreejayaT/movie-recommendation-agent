@@ -20,12 +20,15 @@ def show_cards(cards):
             title = card.get("title") or card.get("Title") or "Unknown"
             year = card.get("year") or card.get("Year") or ""
             st.markdown(f"**{title}** {f'({year})' if year else ''}")
-            rating = card.get("rating") or card.get("imdbRating")
+            runtime = card.get("runtime")
+            rating = card.get("rating")
+            parts = []
+            if runtime and runtime != "N/A":
+                parts.append(runtime)
             if rating and rating != "N/A":
-                st.caption(f"⭐ {rating}")
-            genre = card.get("genre") or card.get("Genre")
-            if genre:
-                st.caption(genre)
+                parts.append(f"⭐ {rating}")
+            if parts:
+                st.caption(" · ".join(parts))
 # ------------------------------------------------------------
 # Config — reads from Streamlit secrets first, falls back to env vars
 # ------------------------------------------------------------
@@ -218,15 +221,7 @@ for entry in st.session_state.display_log:
     with st.chat_message(entry["role"]):
         st.markdown(entry["content"])
 
-        if entry.get("cards"):
-            cols = st.columns(len(entry["cards"]))
-            for col, card in zip(cols, entry["cards"]):
-                with col:
-                    if card.get("poster") and card["poster"] != "N/A":
-                        st.image(card["poster"], width=140)
-                    st.markdown(f"**{card['title']}** ({card['year']})")
-                    st.caption(f"{card['runtime']} · ⭐ {card['rating']}")
-
+        show_cards(entry.get("cards"))
         if entry.get("snippets"):
             with st.expander(f"See {len(entry['snippets'])} reviews used for this recommendation"):
                 for s in entry["snippets"]:
