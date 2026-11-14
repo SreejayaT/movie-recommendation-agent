@@ -300,9 +300,6 @@ def run_agent(user_message, history, max_turns=5):
 # ------------------------------------------------------------
 # UI
 # ------------------------------------------------------------
-st.write("OMDb key loaded:", bool(OMDB_API_KEY))
-test = requests.get("http://www.omdbapi.com/", params={"apikey": OMDB_API_KEY, "t": "Inception"}, timeout=5).json()
-st.write(test)
 render_poster_wall()
 st.title("🎬 What Should I Watch?")
 st.caption("Recommendations grounded in real critic reviews, not just star ratings.")
