@@ -101,4 +101,4 @@ Free keys: [Groq](https://console.groq.com/keys) and [OMDb](https://www.omdbapi.
 
 ## Author
 
-Built by **Sreejaya**. Showcase page: add your GitHub Pages link here.
+Built by **Sreejaya**. 
